@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+    <link rel="stylesheet" href="/style.css">
+    <title>Document</title>
+</head>
+<body>
+    <nav>
+        <h4>Password Wallet</h4>
+        
+        <ul>
+            <li><a href="/dashboard">Home</a></li>
+            <li><a href="/logout">Logout</a></li>
+        </ul>
+    </nav>
+    <div class="container mt-4">
+          {{#if message}}
+         <h4 class='alert alert-danger mt-4'>{{message}}</h4>
+        {{/if}}
+        <div class="jumbotron">
+            <h3 class="display-5">Hello, {{user.login}}</h3>
+           <table class="table table-dark">
+  <thead>
+    <tr>
+      <th scope="col">Login</th>
+      <th scope="col">Service</th>
+      <th scope="col">Password</th>
+      <th scope="col">Description</th>
+    </tr>
+  </thead>
+  <tbody>
+        {{#each results}}
+    <tr>
+      <td>{{this.login}}</td>
+      <td>{{this.web_address}}</td>
+     
+      <td><a id='show-btn' class='btn btn-warning'>Show password</a>
+      <a id='close-btn' class='btn btn-secondary toggleDisplay'>Your password:{{decrypted}}</a></td>
+ 
+      <td>{{this.description}}</td>
+      <td><a href="/wallet/delete/{{this.id}}" class='btn btn-danger'>Delete</a></td>
+    </tr>
+           {{/each }}
+
+  </tbody>
+</table>
+            <a class="btn btn-primary btn-lg" href="/createUser" role="button">Learn more</a>
+        </div>
+    </div>
+<script src="/scripts/index.js"></script>
+
+  
+</body>
+</html>

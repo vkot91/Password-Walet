@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+    <link rel="stylesheet" href="/style.css">
+    <title>Document</title>
+</head>
+<body>
+    <nav>
+        <h4>Password Wallet</h4>
+        
+        <ul>
+            <li><a href="/dashboard">Home</a></li>
+            <li><a href="/logout">Logout</a></li>
+        </ul>
+    </nav>
+      <div class="card" >
+         <div class="card-header"> Form</div>
+          <div class="card-body">
+              {{#if message}}
+            <h4 class='alert alert-danger mt-4'>{{message}}</h4>
+        {{/if}}
+     <form action='/wallet/register' method='POST'>
+     
+                    <div class="form-group">
+                        <label for="name">Name</label>
+                        <input type="name" name='name' class="form-control" id="name">
+                    </div>
+                  
+                      <div class="form-group">
+                        <label for="webAdress">Web adress</label>
+                        <input type="webAdress" name='webAdress' class="form-control" id="webAdress">
+                    </div>
+                  
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input type="password" name='password' class="form-control" id="password">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="passwordConfirm">Confirm Password</label>
+                        <input type="password" name='passwordConfirm' class="form-control" id="passwordConfirm">
+                    </div>
+                    <div class="form-group">
+                        <label for="descr">Description</label>
+                        <input type="text" name='descr' class="form-control" id="descr">
+                    </div>
+       
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                </form>
+          </div>
+      </div>
+       
+</body>
+</html>

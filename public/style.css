@@ -1,0 +1,29 @@
+nav {
+  background-color: #563d7c;
+  color: #fff;
+  padding: 30px 60px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+ul {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+}
+li {
+  list-style: none;
+  margin-right: 10px;
+  font-size: 20px;
+}
+li a {
+  text-decoration: none;
+  color: #fff;
+}
+li a:hover {
+  color: yellow;
+  text-decoration: none;
+}
+.toggleDisplay {
+  display: none;
+}
