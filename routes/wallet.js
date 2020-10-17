@@ -1,8 +1,8 @@
 const express = require("express");
-const walletControllet = require("../controllers/wallet");
+const walletController = require("../controllers/wallet");
 const router = express.Router();
 
-router.post("/register", walletControllet.register);
-router.get("/delete/:id", walletControllet.delete);
+router.post("/register", walletController.register);
+router.get("/delete/:id", walletController.delete);
 
 module.exports = router;

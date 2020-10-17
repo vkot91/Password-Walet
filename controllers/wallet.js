@@ -10,6 +10,11 @@ exports.register = (req, res) => {
   const { name, webAdress, password, passwordConfirm, descr } = req.body;
   const user = req.session.user;
   const mainUserId = req.session.userId;
+  if (mainUserId == null || mainUserId == undefined) {
+    return res.render("login", {
+      message: "Please login",
+    });
+  }
   if (!mainUserId) {
     return res.render("login", {
       message: "Please login",
@@ -24,6 +29,7 @@ exports.register = (req, res) => {
   // const plaintext = password;
   // const key = mainUserPassword;
   const encrypted = aes256.encrypt(mainUserPassword, password);
+  const decrypted = aes256.decrypt(mainUserPassword, encrypted);
 
   db.query(
     "INSERT INTO passwords SET ?",
@@ -36,11 +42,10 @@ exports.register = (req, res) => {
     },
     (error, results) => {
       if (error) {
-         console.log(error);
+        console.log(error);
       } else {
         return res.redirect("/dashboard");
       }
-      
     }
   );
 };
@@ -53,4 +58,3 @@ exports.delete = (req, res) => {
     return res.redirect("/dashboard");
   });
 };
-

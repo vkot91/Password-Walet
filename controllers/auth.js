@@ -3,10 +3,12 @@ const mysql = require("mysql");
 const sha512 = require("js-sha512");
 const crypto = require("crypto");
 const aes256 = require("aes256");
+const { error } = require("console");
 const db = mysql.createConnection({
   host: process.env.DATABASE_HOST,
   user: process.env.DATABASE_USER,
   database: process.env.DATABASE,
+  multipleStatements: true,
 });
 // DECLARING CUSTOM MIDDLEWARE
 const hmacPassGenerator = (password, salt) => {
@@ -131,35 +133,152 @@ exports.login = async (req, res) => {
   }
 };
 exports.dashboard = async (req, res) => {
-  const user = req.session.user,
-    userId = req.session.userId;
-  const userMasterPass = user.password;
-  if (userId == null) {
-    res.redirect("/login");
+  try {
+    const user = req.session.user,
+      userId = req.session.userId;
+    const userMasterPass = req.session.user.password;
+    const sql = "SELECT * FROM `passwords` WHERE `user_id`='" + userId + "'";
+
+    db.query(sql, function (err, results) {
+      if (results.length > 0) {
+        results.map((item, index) => {
+          const notePass = item.password;
+          return (item.decrypted = aes256.decrypt(userMasterPass, notePass));
+        });
+        const decrypted = results.map((item) => {
+          return item.decrypted;
+        });
+        return res.render("dashboard", {
+          user,
+          results,
+          decrypted,
+        });
+      } else {
+        return res.render("dashboard", {
+          user,
+        });
+      }
+    });
+  } catch (e) {
+    console.log(e);
     return;
   }
-  const sql = "SELECT * FROM `passwords` WHERE `user_id`='" + userId + "'";
-
-  db.query(sql, function (err, results) {
-    const notePass = results[0].password;
-    const decrypted = aes256.decrypt(userMasterPass, notePass);
-  
-    results.map((item) => {
-      item.decrypted = decrypted;
-    });
-    const scripts = [{ script: '../scripts/index.js' }];
-
-    return res.render("dashboard", {
-      user,
-      results,
-      decrypted,
-      scripts
-    });
-  });
 };
 //------------------------------------logout functionality----------------------------------------------
 exports.logout = function (req, res) {
   req.session.destroy(function (err) {
     return res.redirect("/login");
   });
+};
+//------------------------------------reset password functionality----------------------------------------------
+exports.resetPassword = async (req, res) => {
+  try {
+    //tade data from html form
+    const { passwordOld, passwordNew, passwordConfirm, hashSelect } = req.body;
+    //take data from cookies,session
+    const user = req.session.user,
+      userId = req.session.userId;
+    const salt = user.salt;
+    //Select user to compare password
+    db.query(
+      "SELECT * FROM users where id = ?",
+      [userId],
+      async (error, results) => {
+        //Hash old password to compare with password id DB
+        const hmacPassword = hmacPassGenerator(passwordOld, salt);
+        const shaPassword = sha512PassGenerator(passwordOld, salt);
+        const userPassword = await results[0].password;
+        const elems = [shaPassword, hmacPassword];
+        const truePass = elems.filter((item) => {
+          return item == userPassword;
+        });
+        if (truePass.length == 0) {
+          return res.status(401).render("resetPassword", {
+            message: "Old password is incorrect!",
+          });
+        } else {
+          if (passwordNew != passwordConfirm) {
+            return res.status(401).render("resetPassword", {
+              message: "Password not match!",
+            });
+          }
+          const { boolType, hashedPass, salt } = checkPasswordType(
+            hashSelect,
+            passwordNew
+          );
+          //Update hash,salt, and Type of password
+          db.query(
+            "UPDATE users SET salt=?, isPasswordKeptAsHash=?, password=?  WHERE id=?",
+            [salt, boolType, hashedPass, userId],
+            (err, results) => {
+              if (err) {
+                console.log(err);
+              }
+              const sql =
+                "SELECT * FROM `passwords` WHERE `user_id`='" + userId + "'";
+              db.query(sql, function (err, results) {
+                if (results.length > 0) {
+                  const decrypted = results.map((item) => {
+                    return (item.password = aes256.decrypt(
+                      userPassword,
+                      item.password
+                    ));
+                  });
+                  const encrypted = decrypted.map((item) => {
+                    return aes256.encrypt(hashedPass, item);
+                  });
+                  // const goodPass = encrypted.map((item) => {
+                  //   return aes256.decrypt(hashedPass, item);
+                  // });
+
+                  const idWallet = results.map((item) => {
+                    return item.id;
+                  });
+                  const items = idWallet.map(function (i, index) {
+                    return {
+                      id: i,
+                      password: encrypted[index],
+                    };
+                  });
+                  console.log(items);
+                  items.map((item) => {
+                    db.query(
+                      "UPDATE passwords SET password=? WHERE id=?",
+                      [item.password, item.id],
+                      (err, results) => {
+                        if (err) {
+                          console.log(err);
+                        }
+                        console.log(results);
+                      }
+                    );
+                  });
+
+                  const goodPass = items.map((item) => {
+                    return (item.password = aes256.decrypt(
+                      hashedPass,
+                      item.password
+                    ));
+                  });
+                  results.map((item, index) => {
+                    if (item.id === items[index].id) {
+                      item.decrypted = goodPass[index].password;
+                    }
+                  });
+                  console.log(results);
+                  return res.redirect("/login");
+                } else {
+                  return res.render("dashboard", {
+                    user,
+                  });
+                }
+              });
+            }
+          );
+        }
+      }
+    );
+  } catch (e) {
+    console.log(e);
+  }
 };
