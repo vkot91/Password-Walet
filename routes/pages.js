@@ -1,7 +1,8 @@
 const express = require("express");
 const authController = require("../controllers/auth");
-const app = express();
 const router = express.Router();
+
+//Create views
 router.get("/", (req, res) => {
   res.render("index");
 });
